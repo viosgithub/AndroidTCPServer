@@ -1,7 +1,10 @@
 package foo.bar.UDPServer;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
@@ -37,18 +40,32 @@ public class SendThread extends Thread{
 		try{
 		OutputStreamWriter	osw = new OutputStreamWriter(socket.getOutputStream());
 			BufferedWriter bw = new BufferedWriter(osw);
+			InputStream is = socket.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			String rLine = "";
 		while(true)
 		{
-			//z x y
-			bw.write("z:" + String.valueOf(sensorThread.a)+"#");
-			bw.write("x:" + String.valueOf(sensorThread.b)+"#");
-			bw.write("y:" + String.valueOf(sensorThread.c)+"#");
-			bw.flush();
-			if (!socket.isConnected())
+			while(is.available() > 0)
+			{
+				rLine = br.readLine();
+				Log.d("debug","br:"+rLine);
+				if(rLine.equals("close"))
 				{
-					Log.d("debug","broken");
-					break;
+				Log.d("debug","getClose");
+				br.close();
+				is.close();
+				bw.close();
+				osw.close();
+				socket.close();
+					
 				}
+			}
+			//z x y
+			bw.write("z:" + String.valueOf(sensorThread.a)+" ");
+			bw.write("x:" + String.valueOf(sensorThread.b)+" ");
+			bw.write("y:" + String.valueOf(sensorThread.c)+"\n");
+			bw.flush();
+			Thread.sleep(50);
 		}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
